@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en" charset="utf-8">
+
+<head>
+    <title>Scales for Chromatic Harmonica</title>
+
+    <style>
+        body {
+            background-color: #222222;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-size: 18pt;
+            font-weight: bold;
+            color: #a8a8a8;
+            padding: 0;
+        }
+
+        .center {
+            margin: auto;
+            width: 50%;
+            padding: 10px;
+        }
+
+        .centerText {
+            text-align: center;
+        }
+
+        button {
+            align-content: center;
+            border: none;
+            background-color: inherit;
+            padding: 14px 28px;
+            font-size: 18pt;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .heighttext {
+            display: inline-block;
+            padding: 3px 3px;
+            line-height: 100%;
+            font-size: 17pt;
+            font-weight: bold;
+            background-color: #a8a8a8;
+        }
+
+        audio {
+            width: 140px;
+            height: 80px;
+        }
+
+        #panels {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        div {
+            float: left;
+            height: 500px;
+            padding: 1px;
+        }
+
+        #column1 {
+            background-color: #222222;
+            width: 30%;
+            padding: 4px;
+        }
+
+        #column2 {
+            width: 220px;
+        }
+
+        #column3 {
+            background-color: #222222;
+            width: 35%;
+            padding: 4px;
+        }
+
+        option {
+            line-height: 80%;
+            font-size: 15pt;
+            font-weight: bold;
+        }
+
+        input[type='number'] {
+            width: 80px;
+        }
+
+        .frameImage {
+            opacity: 0;
+            -webkit-filter: grayscale(100%);
+            filter: grayscale(100%);
+            position: absolute;
+            left: 430px;
+            top: 10;
+            width: 200px;
+            /*290px;*/
+            height: 440px;
+            /*640px;*/
+            z-index: -1;
+        }
+
+        /* Safari */
+        :-webkit-full-screen {
+            background-color: yellow;
+        }
+
+        /* IE11 */
+        :-ms-fullscreen {
+            background-color: yellow;
+        }
+
+        /* Standard syntax */
+        :fullscreen {
+            background-color: yellow;
+        }
+    </style>
+
+    <script>
+
+        var imageOn = true;
+        var audioOn = true;// false; //true;
+        var aborter = false;
+
+        var indx = Array(250).fill(-1);
+
+        const scaleNames = ["Chromatic", "A_Major / Fs_Minor", "B_Major / Gs_Minor", "C_Major / A_Minor", "D_Major / B_Minor", "E_Major / Cs_Minor", "F_Major / D_Minor", "G_Major / E_Minor", "Ab_Major / F_Minor", "Bb_Major / G_Minor", "Cs_Major / As_Minor", "Db_Major / Bb_Minor", "Eb_Major / C_Minor", "Fs_Major / Ds_Minor", "Gb_Major / Eb_Minor"];
+
+        const chromScale = ["Chro", "  ", "C3", "C#3 / Db3", "D3", "D#3 / Eb3", "E3", "F3", "F#3 / Gb3", "G3", "G#3 / Ab3", "A3", "A#3 / Bb3", "B3", "C4", "C#4 / Db4", "D4", "D#4 / Eb4", "E4", "F4", "F#4 / Gb4", "G4", "G#4 / Ab4", "A4", "A#4 / Bb4", "B4", "C5", "C#5 / Db5", "D5", "D#5 / Eb5", "E5", "F5", "F#5 / Gb5", "G5", "G#5 / Ab5", "A5", "A#5 / Bb5", "B5", "C6", "C#6 / Db6", "D6", "D#6 / Eb6", "E6", "F6", "F#6 / Gb6", "G6", "G#6 / Ab6", "A6", "A#6 / Bb6", "B6", "C7", "C#7 / Db7", "D7"];
+
+        //         const Eb_Major = ["Eb_Major", "C3", "D3", "Eb3", "F3", "G3", "Ab3", "Bb3", "C4", "D4", "Eb4", "F4", "G4", "Ab4", "Bb4", "C5", "D5", "Eb5", "F5", "G5", "Ab5", "Bb5", "C6", "D6", "Eb6", "F6", "G6", "Ab6", "Bb6", "C7", "D7"];
+        const numNotesMax = chromScale.length - 1;
+
+        const tabs = ["tab", "   ", "1+ ", "1+S", "1- ", "1-S", "2+ ", "2- ", "2-S", "3+ ", "3+S", "3- ", "3-S", "4- ", "1+ ", "1+S", "1- ", "1-S", "2+ ", "2- ", "2-S", "3+ ", "3+S", "3- ", "3-S", "4- ", "5+ ", "5+S", "5- ", "5-S", "6+ ", "6- ", "6-S", "7+ ", "7+S", "7- ", "7-S", "8- ", "9+ ", "9+S", "9- ", "9-S", "0+ ", "0- ", "0-S", "1+ ", "1+S", "1- ", "1-S", "2- ", "2+ ", "2+S", "2-S"];
+
+        const freq = ["freq", "    ", "130.81", " 138.59", " 146.83", " 155.56", " 164.81", " 174.61", " 185.00", " 196.00", " 207.65", " 220.00", " 233.08", " 246.94", " 261.63", " 277.18", " 293.66", " 311.13", " 329.63", " 349.23", " 369.99", " 392.00", " 415.30", " 440.00", " 466.16", " 493.88", " 523.25", " 554.37", " 587.33", " 622.25", " 659.26", " 698.46", " 739.99", " 783.99", " 830.61", " 880.00", " 932.33", " 987.77", "1046.50", "1108.73", "1174.66", "1244.51", "1318.51", "1396.91", "1479.98", "1567.98", "1661.22", "1760.00", "1864.66", "1975.53", "2093.00", "2217.46", "2349.32"];
+
+        const wave = ["wave", "    ", "2.601", "2.455", "2.318", "2.187", "2.065", "1.949", "1.839", "1.736", "1.639", "1.547", "1.460", "1.378", "1.301", "1.228", "1.159", "1.094", "1.032", "0.974", "0.920", "0.868", "0.819", "0.773", "0.730", "0.689", "0.650", "0.614", "0.579", "0.547", "0.516", "0.487", "0.460", "0.434", "0.410", "0.387", "0.365", "0.345", "0.325", "0.307", "0.290", "0.273", "0.258", "0.244", "0.230", "0.217", "0.205", "0.193", "0.182", "0.172", "0.163", "0.153", "0.145"];
+
+        const m2in = 39.37;
+
+
+        const C_Major = ["C_Major", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5", "F5", "G5", "A5", "B5", "C6", "D6", "E6", "F6", "G6", "A6", "B6", "C7", "D7"];
+
+        const D_Major = ["D_Major", "C#3", "D3", "E3", "F#3", "G3", "A3", "B3", "C#4", "D4", "E4", "F#4", "G4", "A4", "B4", "C5", "D5", "E5", "F#5", "G5", "A5", "B5", "C#6", "D6", "E6", "F#6", "G6", "A6", "B6", "C#7", "D7"];
+
+        const E_Major = ["E_Major", "C#3", "D#3", "E3", "F#3", "G#3", "A3", "B3", "C#4", "D#4", "E4", "F#4", "G#4", "A4", "B4", "C#5", "D#5", "E5", "F#5", "G#5", "A5", "B5", "C#6", "D#6", "E6", "F#6", "G#6", "A6", "B6", "C#7", "D#7"];
+
+        const F_Major = ["F_Major", "C3", "D3", "E3", "F3", "G3", "A3", "Bb3", "C4", "D4", "E4", "F4", "G4", "A4", "Bb4", "C5", "D5", "E5", "F5", "G5", "A5", "Bb5", "C6", "D6", "E6", "F6", "G6", "A6", "Bb6", "C7", "D7"];
+
+        const G_Major = ["G_Major", "C3", "D3", "E3", "F#3", "G3", "A3", "B3", "C4", "D4", "E4", "F#4", "G4", "A4", "B4", "C5", "D5", "E5", "F#5", "G5", "A5", "B5", "C6", "D6", "E6", "F#6", "G6", "A6", "B6", "C7", "D7"];
+
+        const A_Major = ["A_Major", "C#3", "D3", "E3", "F#3", "G#3", "A3", "B3", "C#4", "D4", "E4", "F#4", "G#4", "A4", "B4", "C#5", "D5", "E5", "F#5", "G#5", "A5", "B5", "C#6", "D6", "E6", "F#6", "G#6", "A6", "B6", "C7", "D7"];
+
+        const B_Major = ["B_Major", "C#3", "D#3", "E3", "F#3", "G#3", "A#3", "B3", "C#4", "D#4", "E4", "F#4", "G#4", "A#4", "B4", "C#5", "D#5", "E5", "F#5", "G#5", "A#5", "B5", "C#6", "D#6", "E6", "F#6", "G#6", "A#6", "B6", "C#7"];
+
+        const Cs_Major = ["Cs_Major", "C#3", "D#3", "E#3", "F#3", "G#3", "A#3", "B#3", "C#4", "D#4", "E#4", "F#4", "G#4", "A#4", "B#4", "C#5", "D#5", "E#5", "F#5", "G#5", "A#5", "B#5", "C#6", "D#6", "E#6", "F#6", "G#6", "A#6", "B#6", "C#7"];
+
+        const Db_Major = ["Db_Major", "C3", "Db3", "Eb3", "F3", "Gb3", "Ab3", "Bb3", "C4", "Db4", "Eb4", "F4", "Gb4", "Ab4", "Bb4", "C5", "Db5", "Eb5", "F5", "Gb5", "Ab5", "Bb5", "C6", "Db6", "Eb6", "F6", "Gb6", "Ab6", "Bb6", "C7", "Db7"];
+
+        const Eb_Major = ["Eb_Major", "C3", "D3", "Eb3", "F3", "G3", "Ab3", "Bb3", "C4", "D4", "Eb4", "F4", "G4", "Ab4", "Bb4", "C5", "D5", "Eb5", "F5", "G5", "Ab5", "Bb5", "C6", "D6", "Eb6", "F6", "G6", "Ab6", "Bb6", "C7", "D7"];
+
+        const Fs_Major = ["Fs_Major", "C#3", "D#3", "E#3", "F#3", "G#3", "A#3", "B3", "C#4", "D#4", "E#4", "F#4", "G#4", "A#4", "B4", "C#5", "D#5", "E#5", "F#5", "G#5", "A#5", "B5", "C#6", "D#6", "E#6", "F#6", "G#6", "A#6", "B6", "C#7"];
+
+        const Gb_Major = ["Gb_Major", "Cb3", "Db3", "Eb3", "F3", "Gb3", "Ab3", "Bb3", "Cb4", "Db4", "Eb4", "F4", "Gb4", "Ab4", "Bb4", "Cb5", "Db5", "Eb5", "F5", "Gb5", "Ab5", "Bb5", "Cb6", "Db6", "Eb6", "F6", "Gb6", "Ab6", "Bb6", "Cb7", "Db7"];
+
+        const Ab_Major = ["Ab_Major", "C3", "Db3", "Eb3", "F3", "G3", "Ab3", "Bb3", "C4", "Db4", "Eb4", "F4", "G4", "Ab4", "Bb4", "C5", "Db5", "Eb5", "F5", "G5", "Ab5", "Bb5", "C6", "Db6", "Eb6", "F6", "G6", "Ab6", "Bb6", "C7", "Db7"];
+
+        const Bb_Major = ["Bb_Major", "C3", "D3", "Eb3", "F3", "G3", "A3", "Bb3", "C4", "D4", "Eb4", "F4", "G4", "A4", "Bb4", "C5", "D5", "Eb5", "F5", "G5", "A5", "Bb5", "C6", "D6", "Eb6", "F6", "G6", "A6", "B6", "C7", "D7"];
+
+        const Z_Major = ["Z_Major"];
+
+        const scalesAll = chromScale.concat(A_Major, B_Major, C_Major, D_Major, E_Major, F_Major, G_Major, Ab_Major, Bb_Major, Cs_Major, Db_Major, Eb_Major, Fs_Major, Gb_Major, Z_Major);
+
+        console.log(scalesAll);
+    </script>
+</head>
+
+<body>
+    <main id="panels">
+        <div id="column1">
+            <script>
+                var config = "";
+                config = config + '<h1 class="centerText">'
+                    + document.title
+                    + '</h1>'
+                    + '<br>'
+                    + '<br>'
+                    + '<h3 class="centerText">'
+                    + 'sc00.01.08b'
+                    + '<br>'
+                    + '09Feb2022'
+                    + '<br>'
+                    + '&copy;2022 RONC'
+                    + '</h3>';
+
+                // console.log(config);
+                document.getElementById('column1').innerHTML = config;
+            </script>
+        </div>
+
+        <div id="column2">
+            <script>
+                // Build preloaded tableof images and audio files 
+                var config = "";
+                if (imageOn == true) {
+                    config = config
+                        + '<img class="frameImage" id="f'
+                        + 0 + '"'
+                        + ' src = "frame ('
+                        + 0
+                        + ').gif" alt = "frame'
+                        + 0 + '"'
+                        + ' style = "z-index:'
+                        + 0
+                        + '; opacity: 1;">';
+                }
+
+                for (var j = 1; j <= numNotesMax; j++) {
+
+                    if (imageOn == true) {
+                        config = config
+                            + '<img class="frameImage" id="f'
+                            + j + '"'
+                            + ' src = "frame ('
+                            + j
+                            + ').gif" alt = "frame'
+                            + j + '"'
+                            + ' style = "z-index:'
+                            + j
+                            + '; opacity: 0;">';
+                    }
+
+                    if (audioOn == true) {
+                        config = config + '<audio class="frameAudio" id="a'
+                            + j + '"'
+                            + ' src = "frame ('
+                            + j
+                            + ').mp3" preload volume = "0.0"></audio>'
+                    }
+                };
+
+                config = config + '</br>';
+
+                //  console.log(config);
+                document.getElementById("column2").innerHTML = config;
+            </script>
+        </div>
+
+        <div id="column3">
+            <script>
+                var config = "";
+                config = config + '<br>'
+                    + '<label for="scales">Scale: </label>'
+                    + '<select name="scales" id="scales" class="heighttext">';
+
+                for (var k = 0; k < scaleNames.length; k++) {
+                    config = config
+                        + '<option value="'
+                        + scaleNames[k]
+                        + '">'
+                        + scaleNames[k]
+                        + '</option>';
+                }
+                config = config
+                    + '</select>';
+
+                config = config + '<br>'
+                    + '<label for="scaleLo">Scale low note:&nbsp;&nbsp;</label>'
+                    + '<select name="scaleLo" id="scaleLo" class="heighttext">';
+
+                for (var k = 2; k < chromScale.length; k++) {
+                    config = config
+                        + '<option value="'
+                        + chromScale[k]
+                        + '">'
+                        + chromScale[k]
+                        + '</option>';
+                }
+                config = config
+                    + '</select>';
+
+                config = config + '<br>'
+                    + '<label for="scaleHi">Scale high note: </label>'
+                    + '<select name="scaleHi" id="scaleHi" class="heighttext">';
+
+                for (var k = chromScale.length - 1; k >= 2; k--) {
+                    config = config
+                        + '<option value="'
+                        + chromScale[k]
+                        + '">'
+                        + chromScale[k]
+                        + '</option>';
+                }
+                config = config
+                    + '</select>';
+
+                config = config + '<br>'
+                    + '<label for="direction">Scale direction: </label>'
+                    + '<select name="direction" id="direction" class="heighttext">'
+                    + '<option value="up">Up</option>'
+                    + '<option value="down">Down</option>'
+                    + '<option value="upDown">Up / Down</option>'
+                    + '<option value="downUp">Down / Up</option>'
+                    + '</select>';
+
+                config = config + '<br>'
+                    + '<label for="stepIn">Scale step (1-12): </label>'
+                    + '<input type="number" id="stepIn" name="stepIn" min="1" max="12" step="1" value="1" class="heighttext">';
+
+                config = config + '<br><br>'
+                    + '<label for="volumeIn">Volume (0.0-2.0): </label>'
+                    + '<input type="number" id="volumeIn" name="volumeIn" min="0.0" max="2.0" step="0.05" value="1.0" class="heighttext">';
+
+                config = config + ' <br><br>'
+                    + '<label for="durationIn">Duration(s) (0.0-4.0): </label>'
+                    + '<input type="number" id="durationIn" name="durationIn" min="0.0" max="4.0" step="0.05" value="1.0" class="heighttext">';
+
+                config = config + ' <br><br>'
+                    + ' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                    + '<input class="heighttext" id="startBtn" type="button" value="OK" onclick="syncer()">'
+                    + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                    + '<input class="heighttext" id="resetBtn" type="button" value="RESET" onclick="reseter()">'
+                    + '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'
+                    + '<input class="heighttext" id="stopBtn" type="button" value="STOP" onclick="stopper()">';
+
+                // console.log(config);
+                document.getElementById("column3").innerHTML = config;
+
+                //openFullscreen()
+            </script>
+
+        </div>
+
+        <script>
+            function waiter(imageFrame, audioFrame, x, delay) {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        if (imageOn == true) {
+                            document.getElementById(imageFrame).style.opacity = 0;
+                            //console.log(x + " " + imageFrame + " set2f ", document.getElementById(imageFrame).style.opacity + '  ' + x + '  ' + delay);
+                        }
+
+                        if (audioOn == true) {
+                            document.getElementById(audioFrame).volume = 0.0;
+                            if (aborter == true) document.getElementById(audioFrame).duration = 0.0;
+                            //console.log(x + " " + audioFrame + " set2a ", document.getElementById(audioFrame).volume);
+                        }
+
+                        resolve(x);
+                    }, delay)
+                })
+            };
+
+            function findMatch(a, b, c, bsIn, beIn, bi) {
+                var la = a.length;
+                var lb = b.length;
+                var lc = c.length;
+                var bs, be;
+                var num = 0;
+                // let result = text.substr(0, 6);
+                bs = 1;
+                be = lb;
+                for (var j = 1; j < lc; j++) {
+                    if (c[j].includes(bsIn)) {
+                        bs = j;
+                    }
+                    if (c[j].includes(beIn)) {
+                        be = j;
+                    }
+                }
+                //ages.findIndex(checkAge);
+                console.log("inside find " + la + " " + lb + " " + lc + " " + bsIn + " " + bs + " " + beIn + " " + be + " " + bi);
+                for (var i = 1; i <= lb; i++) {
+                    for (var j = bs; j <= be; j += bi) {
+                        if (c[j].includes(b[i])) {
+                            a[i] = j;
+                            if (i > num) num = i;
+                        }
+                        console.log("find " + c[j] + " " + j + " " + b[i] + " " + i + " " + a[i] + " " + num);
+                    }
+                }
+                return num;
+            };
+
+            function checkAll(all) {
+                return all.substr(0, 6);
+            }
+
+            async function syncer() {
+
+                var frameDelay = 2000;
+                var imageFrame;
+                var audioFrame;
+                var imageOpacity = 1;
+                var audioVolume = volumeIn.value * 0.5;
+
+                var scaleIn = scales.value;
+                var scaleIndex = scales.selectedIndex;
+                var scaleLoIn = scaleLo.value;
+                var scaleLoIndex = parseInt(scaleLo.selectedIndex);
+                var scaleHiIn = scaleHi.value;
+                var scaleHiIndex = parseInt(scaleHi.selectedIndex);
+                var dirIndex = direction.selectedIndex;
+                var stepVal = parseInt(stepIn.value);
+
+                /*                 console.log("input " + scaleIn + "  " + scaleLoIn + "  "
+                                    + scaleHiIn + "  " + scaleIndex + "  "
+                                    + scaleLoIndex + "  " + scaleHiIndex + "  "
+                                    + dirIndex + "  " + stepVal + " " + stepIn.value); */
+
+                indx.fill(-1);
+                var indxSt = scalesAll.findIndex(checkAll);
+                var indxSp = scalesAll.findIndex(checkAll);
+
+                var numNotes = findMatch(indx, scalesAll, chromScale, scaleLoIn, scaleHiIn, stepVal);
+                //var numNotes = findMatch(indx, chromScale, chromScale, scaleLoIn, scaleHiIn, stepVal);
+
+                //console.log("find " + numNotes + " " + indx);
+
+                var jst = 1;
+                var jsp = numNotes;
+                var jinc = 1;
+
+                // switch
+                var i, j;
+                for (j = jst; j <= jsp; j += jinc) {
+                    i = indx[j];
+                    if (i != -1 && aborter == false) {
+                        if (imageOn == true) {
+                            imageFrame = "f" + i;
+                            document.getElementById(imageFrame).style.opacity = imageOpacity;
+                            //console.log(i + " " + j + " " + imageFrame + " set1f ", document.getElementById(imageFrame).style.opacity + " " + jinc);
+                        }
+
+                        if (audioOn == true) {
+                            audioFrame = "a" + i;
+                            document.getElementById(audioFrame).volume = audioVolume;
+                            document.getElementById(audioFrame).duration = document.getElementById(audioFrame).duration * durationIn.value * 0.5;
+                            document.getElementById(audioFrame).play();
+                            //console.log(i + " " + j + " " + audioFrame + " set1a ", document.getElementById(audioFrame).volume + " " + jinc);
+                        }
+                        await waiter(imageFrame, audioFrame, i, frameDelay * durationIn.value * 0.5);
+                    }
+                };
+                aborter = false;
+            };
+
+            function reseter() {
+
+                indx.fill(-1);
+                scales.selectedIndex = 0;
+                scaleLo.selectedIndex = 0;
+                scaleHi.selectedIndex = 0;
+                direction.selectedIndex = 0;
+                volumeIn.value = 1.0;
+                durationIn.value = 1.0;
+                stepIn.value = 1;
+                //console.log("reset");
+            };
+
+            function stopper() {
+                aborter = true;
+                //console.log("stopped");
+            };
+
+            /* Get the documentElement (<html>) to display the page in fullscreen */
+            var elem = document.documentElement;
+
+            /* View in fullscreen */
+            function openFullscreen() {
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.webkitRequestFullscreen) { /* Safari */
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) { /* IE11 */
+                    elem.msRequestFullscreen();
+                }
+            }
+
+            /* Close fullscreen */
+            function closeFullscreen() {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+            }
+        </script>
+    </main>
+</body>
+
+</html>
